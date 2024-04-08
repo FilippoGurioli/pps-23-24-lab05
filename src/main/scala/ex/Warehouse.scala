@@ -8,7 +8,10 @@ trait Item:
   def tags: Sequence[String]
 
 object Item:
-  def apply(code: Int, name: String, tags: Sequence[String] = Sequence.empty): Item = ???
+  private case class ItemImpl(code: Int, name: String, tags: Sequence[String]) extends Item
+
+  def apply(code: Int, name: String, tags: Sequence[String] = Sequence.empty): Item = ItemImpl(code, name, tags)
+  def apply(code: Int, name: String, tag: String*): Item = ItemImpl(code, name, Sequence(tag*))
 
 /**
  * A warehouse is a place where items are stored.
@@ -45,7 +48,14 @@ trait Warehouse:
 end Warehouse
 
 object Warehouse:
-  def apply(): Warehouse = ???
+  private class WarehouseImpl extends Warehouse:
+    private val items: Sequence[Item] = Sequence.empty
+    def store(item: Item): Unit = Sequence(items, item)
+    def searchItems(tag: String): Sequence[Item] = items.filter(_.tags.contains(tag))
+    def retrieve(code: Int): Optional[Item] = items.find(_.code == code)
+    def remove(item: Item): Unit = items.filter(_ != item)
+    def contains(itemCode: Int): Boolean = items.map(_.code).contains(itemCode)
+  def apply(): Warehouse = new WarehouseImpl
 
 @main def mainWarehouse(): Unit =
   val warehouse = Warehouse()
